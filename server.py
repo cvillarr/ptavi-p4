@@ -17,11 +17,13 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
     def handle(self):
         line_str = self.rfile.read().decode('utf-8')
         linecontent = line_str.split()
+        self.wfile.write("SIP/2.0 200 OK\r\n\r\n".encode('UTF-8'))
         if linecontent[0] == 'REGISTER':
             usuario = linecontent[1].split(':')[-1]
             self.dic[usuario] = self.client_address[0]
-            print(self.dic)
-            self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
+        if linecontent[-1] == '0':
+            del(self.dic[usuario])
+        print(self.dic)
 
 
 if __name__ == "__main__":
