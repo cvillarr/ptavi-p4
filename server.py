@@ -16,7 +16,29 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
     """
     dic = {}
 
+    def register2json(self):
+        """
+        Crea fichero json y almacena las direcciones"
+        """
+        ficherojson = open('registered.json', 'w')
+        cod_json = json.dumps(self.dic)
+        ficherojson.write(cod_json)
+        ficherojson.close()
+
+    def json2registered(self):
+        """
+        Comprueba si existe fichero json para poder seguir escribiendo en él
+        """
+        try:
+            ficherojson = open('registered.json', 'r')
+            self.dic = json.load(ficherojson)
+        except:
+            pass
+
     def usuarios_expires(self):
+        """
+        Comprueba si hay usuarios expirados y si los hay los elimina
+        """
         user_expired = []
         for usuario in self.dic:
             time_inicio = time.strftime('%Y-%m-%d %H:%M:%S',
@@ -25,18 +47,15 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
                 user_expired.append(usuario)
         for usuario in user_expired:
             del(self.dic[usuario])
-        print(user_expired)
-
-    def register2json(self):
-        ficherojson = open('registered.json', 'w')
-        cod_json = json.dumps(self.dic)
-        ficherojson.write(cod_json)
-        ficherojson.close()
 
     def handle(self):
+        """
+        Se encarga de actuar cuando recibe un REGISTER
+        """
         line_str = self.rfile.read().decode('utf-8')
         linecontent = line_str.split()
-        self.wfile.write("SIP/2.0 200 OK\r\n\r\n".encode('UTF-8'))
+        self.json2registered()
+
         if linecontent[0] == 'REGISTER':
             usuario = linecontent[1].split(':')[-1]
             IP = self.client_address[0]
@@ -47,6 +66,7 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
             self.dic[usuario] = [{'address': IP}, {'expires': expires}]
         self.usuarios_expires()
         self.register2json()
+        self.wfile.write("SIP/2.0 200 OK\r\n\r\n".encode('UTF-8'))
 
 
 if __name__ == "__main__":
