@@ -32,7 +32,7 @@ class SIPRegisterHandler(socketserver.DatagramRequestHandler):
         try:
             ficherojson = open('registered.json', 'r')
             self.dic = json.load(ficherojson)
-        except:
+        except FileNotFoundError:
             pass
 
     def usuarios_expires(self):
